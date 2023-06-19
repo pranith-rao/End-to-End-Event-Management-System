@@ -5,9 +5,6 @@ from passlib.hash import sha256_crypt
 import os, random, re, requests, json, smtplib
 import io, csv, cloudinary, qrcode
 from datetime import timedelta, date, datetime
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-from sendgrid.helpers.mail import To
 import cloudinary.uploader
 
 app = Flask(__name__)
@@ -17,10 +14,37 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_COOKIE_NAME"] = "login-system"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
 
-cloudinary.config(cloud_name="eventx", api_key="", api_secret="")
+cloudinary.config(
+    cloud_name="eventx",
+    api_key="984453684258296",
+    api_secret="K6hTffq9dyhZVcoL4SX9giefitc",
+)
 
-# client_id="505348922138-a10mfp737qq5lmgi33opfis1ln0cka5j.apps.googleusercontent.com",
-# client_secret='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',
+
+def send_mail(recipient, subject, body):
+    FROM = "gtafive5one@gmail.com"
+    TO = recipient if isinstance(recipient, list) else [recipient]
+    SUBJECT = subject
+    TEXT = body + "\n\nThanks & Regards,\nTeam EventX"
+
+    message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+    """ % (
+        FROM,
+        ", ".join(TO),
+        SUBJECT,
+        TEXT,
+    )
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.ehlo()
+        server.starttls()
+        server.login("gtafive5one@gmail.com", "cuagyxlpxfcpczzf")
+        server.sendmail(FROM, TO, message)
+        server.close()
+    except:
+        flash("Check your internet connection", "error")
+        return redirect(url_for("home"))
+
 
 db = SQLAlchemy(app)
 
@@ -86,6 +110,7 @@ class Event(db.Model):
     date = db.Column(db.String(50), nullable=False)
     time = db.Column(db.String(50), nullable=False)
     category = db.Column(db.String(50), nullable=False)
+    location = db.Column(db.String(50), nullable=False)
     coorg_mail = db.Column(db.String(80), db.ForeignKey("coorganizer.email"))
     org_id = db.Column(db.Integer, db.ForeignKey("organizer.id"))
     participant_id = db.relationship(
@@ -135,31 +160,6 @@ class Plist(db.Model):
 @app.route("/")
 def home():
     return render_template("home.html")
-
-
-def send_mail(recipient, subject, body):
-    FROM = "gtafive5one@gmail.com"
-    TO = recipient if isinstance(recipient, list) else [recipient]
-    SUBJECT = subject
-    TEXT = body + "\n\nThanks & Regards,\nTeam EventX"
-
-    message = """From: %s\nTo: %s\nSubject: %s\n\n%s
-    """ % (
-        FROM,
-        ", ".join(TO),
-        SUBJECT,
-        TEXT,
-    )
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.ehlo()
-        server.starttls()
-        server.login("gtafive5one@gmail.com", "cuagyxlpxfcpczzf")
-        server.sendmail(FROM, TO, message)
-        server.close()
-    except:
-        flash("Check your internet connection", "error")
-        return redirect(url_for("home"))
 
 
 # login page
@@ -287,7 +287,9 @@ def participant_register():
                 send_mail(
                     email,
                     "Registration Successfull",
-                    "Thank you for registering on our website.Hope you have a good experience.Your unique QR code is: "
+                    "Hi "
+                    + str(name)
+                    + ",\nThank you for registering on EventX.Hope you have a great experience.\nYour unique QR code is: "
                     + img_url,
                 )
                 flash("Registeration successfully", "success")
@@ -673,7 +675,7 @@ def add_organization():
                 send_mail(
                     email,
                     "Your organization has been added!",
-                    "Your organization has been successfully added under EventX. Hope you have a wonderful experience",
+                    "Hi,\nYour organization has been successfully added under EventX. Hope you have a wonderful experience",
                 )
                 flash("Organization added successfully", "success")
                 return redirect(url_for("admin_dash"))
@@ -740,9 +742,11 @@ def add_organizer():
                     send_mail(
                         email,
                         "You are a Organizer!",
-                        "You have been successfully added as a ORGANIZER under the organization "
+                        "Hi "
+                        + str(name)
+                        + ",\nYou have been successfully added as a ORGANIZER under the organization "
                         + str(organization).upper()
-                        + ". Please use your email as your password on your first login and change it later for security purposes",
+                        + ". Please use your email as your password for your first login and change it later for security purposes",
                     )
                     flash("Organizer added successfully", "success")
                     return redirect(url_for("admin_dash"))
@@ -968,7 +972,7 @@ def organizer_send_otp():
             send_mail(
                 email,
                 "OTP for Password change",
-                "Dear organizer, your verification code is: " + str(otp),
+                "Dear Organizer, your verification code is: " + str(otp),
             )
             flash("OTP sent", "success")
             return redirect(url_for("organizer_otp"))
@@ -1093,6 +1097,7 @@ def addevent():
             date_str = request.form["date"]
             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             time = request.form["time"]
+            location = request.form["location"]
             category = request.form["category"]
             coOrganizer = request.form["co-organizer"]
             today = date.today()
@@ -1108,6 +1113,7 @@ def addevent():
                     description=description,
                     date=date_str,
                     time=time,
+                    location=location,
                     category=category,
                     coorg_mail=email,
                     org_id=org_id,
@@ -1117,7 +1123,9 @@ def addevent():
                 send_mail(
                     email,
                     "Event Alloted!",
-                    "You have been assigned to co-ordinate the "
+                    "Hi "
+                    + str(data.name)
+                    + ",\nYou have been assigned to co-ordinate the "
                     + str(name).upper()
                     + " event. Please login into your dashboard and check for the event details.",
                 )
@@ -1175,6 +1183,7 @@ def editevent(id):
             date_str = request.form["date"]
             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             time = request.form["time"]
+            location = request.form["location"]
             category = request.form["category"]
             coOrganizer = request.form["co-organizer"]
             today = date.today()
@@ -1187,14 +1196,18 @@ def editevent(id):
                 event.description = description
                 event.date = date_str
                 event.time = time
+                event.location = location
                 event.category = category
                 if event.coorg_mail != coOrganizer:
                     event.coorg_mail = coOrganizer
+                    data = Coorganizer.query.filter_by(email=event.coorg_mail).first()
                     db.session.commit()
                     send_mail(
                         coOrganizer,
                         "Event Alloted!",
-                        "You have been assigned to co-ordinate the "
+                        "Hi "
+                        + str(data.name)
+                        + ",\nYou have been assigned to co-ordinate the "
                         + str(name).upper()
                         + " event. Please login into your dashboard and check for the event details.",
                     )
@@ -1208,14 +1221,18 @@ def editevent(id):
                 event.description = description
                 event.date = date_str
                 event.time = time
+                event.location = location
                 event.category = category
                 if event.coorg_mail != coOrganizer:
                     event.coorg_mail = coOrganizer
+                    data = Coorganizer.query.filter_by(email=event.coorg_mail).first()
                     db.session.commit()
                     send_mail(
                         coOrganizer,
                         "Event Alloted!",
-                        "You have been assigned to co-ordinate the "
+                        "Hi "
+                        + str(data.name)
+                        + ",\nYou have been assigned to co-ordinate the "
                         + str(name).upper()
                         + " event. Please login into your dashboard and check for the event details.",
                     )
@@ -1248,7 +1265,8 @@ def del_event(id):
     else:
         flash("Session Expired", "error")
         return redirect(url_for("organizer_log"))
-    
+
+
 @app.route("/del_Org/<int:id>")
 def del_Org(id):
     if "admin" in session:
@@ -1260,7 +1278,8 @@ def del_Org(id):
     else:
         flash("Session Expired", "error")
         return redirect(url_for("admin_log"))
-    
+
+
 @app.route("/del_Organizer/<int:id>")
 def del_Organizer(id):
     if "admin" in session:
@@ -1312,7 +1331,7 @@ def addcoOrganizer():
                         "You are a Co-Organizer!",
                         "You have been successfully added as a CO-ORGANIZER under the organization "
                         + str(organization).upper()
-                        + ". Please use your email as your password on your first login and change it later for security purposes",
+                        + ". Please use your email as your password for your first login and change it later for security purposes",
                     )
                     flash("Co-Organizer added successfully", "success")
                     return redirect(url_for("organizerdash"))
@@ -1383,7 +1402,7 @@ def sendalert():
             attendees = Alert.query.all()
             if attendees:
                 for i in attendees:
-                    send_mail(str(i),subject,message)
+                    send_mail(str(i), subject, message)
                 flash("Alert message broadcasted", "success")
                 return redirect(url_for("send_alert"))
             else:
@@ -1736,7 +1755,7 @@ def change_coOrganizer_pass():
 @app.route("/coOrganizer_view_event")
 def coOrganizer_view_event():
     if "coorganizer" in session:
-        events = Event.query.filter_by(coorg_mail=session["coorganizer_email"])
+        events = Event.query.filter_by(coorg_mail=session["coorganizer_email"]).all()
         return render_template("coOrganizer_view_event.html", data=events)
     else:
         flash("Session Expired", "error")
@@ -1752,7 +1771,6 @@ def coOrganizer_event_page(id):
         p_data = []
         for i in part_data:
             p_data.append(Participant.query.filter_by(id=i.part_id).first())
-
         return render_template(
             "coOrganizer_event_page.html",
             data=get_event_data,
@@ -1790,23 +1808,31 @@ def coOrganizer_update_event(id):
             event = Event.query.filter_by(id=id).first()
             name = request.form["name"]
             description = request.form["description"]
-            date = request.form["date"]
+            date_str = request.form["date"]
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             time = request.form["time"]
+            location = request.form["location"]
             category = request.form["category"]
+            today = date.today()
+            if date_obj < today:
+                flash(Markup("Selected date is older than today's date"), "error")
+                return redirect(url_for("coOrganizer_view_event"))
             name_check = Event.query.filter_by(name=name).first()
             if not name_check:
                 event.name = name
                 event.description = description
-                event.date = date
+                event.date = date_str
                 event.time = time
+                event.location = location
                 event.category = category
                 db.session.commit()
                 flash("Event updated successfully", "success")
                 return redirect(url_for("coOrganizer_view_event"))
             elif name_check.id == id:
                 event.description = description
-                event.date = date
+                event.date = date_str
                 event.time = time
+                event.location = location
                 event.category = category
                 db.session.commit()
                 flash("Event updated successfully", "success")
@@ -1862,6 +1888,25 @@ def add_judge():
                     # event_data.judge = name
                     db.session.add(judge)
                     db.session.commit()
+                    send_mail(
+                        email,
+                        "Event alloted to Judge!",
+                        "Hi "
+                        + name
+                        + ",\nYou have been appointed as a judge for the event "
+                        + str(event_data.name).upper()
+                        + " which will be held on "
+                        + str(event_data.date)
+                        + " at "
+                        + str(event_data.time)
+                        + " in "
+                        + str(event_data.location)
+                        + ". Please contact "
+                        + str(session["coorganizer_name"])
+                        + "("
+                        + str(session["coorganizer_phone"])
+                        + ") for any queries.",
+                    )
                     flash("Judge added successfully", "success")
                     return redirect(url_for("coOrganizerdash"))
                 else:
@@ -1884,7 +1929,15 @@ def add_judge():
 def participant_view_event():
     if "participant" in session:
         events = Event.query.all()
-        return render_template("participant_view_event.html", data=events)
+        event_names = []
+        par_data = Plist.query.filter_by(part_id=session["participant_id"]).all()
+        for i in par_data:
+            data1 = Event.query.filter_by(id=i.event_id).first()
+            event_names.append(data1.name)
+        print(event_names)
+        return render_template(
+            "participant_view_event.html", data=events, registered=event_names
+        )
     else:
         flash("Session Expired", "error")
         return redirect(url_for("participantlog"))
@@ -2233,7 +2286,7 @@ def unregister_event(id):
         db.session.delete(del_p)
         db.session.commit()
         flash("Unregistered successfully", "success")
-        return redirect(url_for("participantdash"))
+        return redirect(url_for("participant_view_event"))
     else:
         flash("Session Expired", "error")
         return redirect(url_for("participantlog"))
@@ -2312,16 +2365,8 @@ def sendeventalert(id):
             if not recp:
                 flash("No Registrations Yet", "error")
                 return redirect(url_for("coOrganizerdash"))
-            message = Mail(
-                from_email=("eventxsjec@gmail.com", "EventX"),
-                to_emails=recp,
-                subject=subject,
-                html_content=messages,
-            )
-            sg = SendGridAPIClient(
-                "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"
-            )
-            sg.send(message)
+            for i in recp:
+                send_mail(i, subject, messages)
             flash("Alert message broadcasted", "success")
             return redirect(url_for("coOrganizerdash"))
         else:

@@ -78,6 +78,9 @@
             <i class="fa fa-calendar-check-o" aria-hidden="true"></i
             >&nbsp;&nbsp;{{data['date']}}
           </p>
+          <p style="margin-bottom: 8px">
+            Location:&nbsp;{{data['location']}}
+          </p>
           <p>Category:&nbsp;{{data['category']}}</p>
           <p>Added By:&nbsp;{{data['organizer']}}</p>
           {%if not data2%}
@@ -139,7 +142,7 @@
           <td>{{i.phone}}</td>
         </tr>
         {% endfor %}{% else %}
-        <h2 class="text-center mt-5 fw-bold text-uppercase">
+        <h2 class="text-center mb-5 fw-bold text-uppercase">
           No Registrations
         </h2>
         {% endif %}

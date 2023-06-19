@@ -54,11 +54,9 @@
 <div class="container" style="padding: 30px">
   <div class="details-item-body">
     {% for i in range(leng) %} {% for k in data[i] %}
-    <p class="info">Event Name : {{k['name']}}<br /></p>
-    <p class="info">Description : {{k['description']}}<br /></p>
-    <p class="info">Event Time : {{k['time']}}<br /></p>
-    <p class="info">Event Date : {{k['date']}}<br /></p>
-    <p class="info">Event Category : {{k['category']}}<br /></p>
+    <p class="info" style="text-transform: uppercase; font-weight: bold">
+      Event Name : {{k['name']}}<br />
+    </p>
     <p class="info">Co-Organizer Contact : {{k['coorg_mail']}}<br /></p>
   </div>
   {%endfor%}

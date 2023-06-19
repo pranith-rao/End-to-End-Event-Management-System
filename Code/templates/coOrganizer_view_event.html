@@ -83,6 +83,9 @@
     justify-content: center;
     align-items: center;
   }
+  h2 {
+    color: white;
+  }
 </style>
 {% endblock %}
 <!--content part-->
@@ -96,7 +99,7 @@
   <form action="/coOrganizer_event_page/{{i['id']}}" method="POST">
     <div class="col" style="padding: 0px; margin: 0px">
       <img
-        src="../static/face.png"
+        src="../static/event.png"
         height="155px"
         width="105px"
         class="card-img-top"
@@ -113,10 +116,11 @@
       </div>
     </div>
   </form>
-  {% endfor %}{% else %}
+
+  {% endfor %} {% else %}
+  <p>hi</p>
   <h2 class="text-center mt-5 fw-bold text-uppercase">
     No Events Assigned To You
   </h2>
-  {% endif %}
 </div>
-{% endblock %}
+{% endif %} {% endblock %}

@@ -121,6 +121,23 @@
     }
   }
 </style>
+<script>
+  function unregister(event_id) {
+    var id = event_id;
+    var path = "/unregister_event/" + id;
+    swal({
+      title: "Are you sure?",
+      icon: "warning",
+      text: "You won't be able to revert this!",
+      buttons: true,
+      dangerMode: true
+    }).then(confirm => {
+      if (confirm) {
+        window.location.replace(path);
+      }
+    });
+  }
+</script>
 {% endblock %}
 <!--content part-->
 {% block content %}
@@ -131,22 +148,38 @@
   <div class="col-md-9 col-md-pull-3">
     <div class="search-result-item-body">
       <div class="row">
-        <div class="col-sm-9">
-          <h4 class="search-result-item-heading">{{i.name}}</h4>
+        <div class="col-sm-7">
+          <h4
+            class="search-result-item-heading"
+            style="
+              text-transform: uppercase;
+              font-weight: bold;
+              margin-bottom: 10px;
+            "
+          >
+            {{i.name}}
+          </h4>
           <p class="info">Date : {{i.date}}<br />Time : {{i.time}}</p>
-          <p class="description">{{i.description}}</p>
+          <p class="description">Description: {{i.description}}</p>
+          <p class="location">Location: {{i.location}}</p>
           <p>Registration Fee:₹100</p>
         </div>
-        <div class="col-sm-3 text-align-center">
+        <div class="col-sm-5 text-align-center">
           <p class="value3 mt-sm"><b>Category:</b><br />{{i.category}}</p>
           <p class="fs-mini text-muted">
             <b>Contact:</b><br />{{i.coorg_mail}}
           </p>
+          {% if i.name in registered %}
+          <button class="card-link" disabled>Registered</button>
+          <button class="card-link" onclick="unregister('{{ i.id }}')">
+            Unregister
+          </button>
+          {% else %}
           <a
             href="/participant_event_register/{{i.id}}"
             style="text-decoration: none"
             ><button class="card-link">Register</button></a
-          ><br /><br />
+          >{% endif %}<br /><br />
           <form>
             <script
               src="https://checkout.razorpay.com/v1/payment-button.js"
