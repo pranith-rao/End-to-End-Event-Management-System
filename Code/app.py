@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from passlib.hash import sha256_crypt
 import os, random, re, requests, json, smtplib
 import io, csv, cloudinary, qrcode
-from datetime import timedelta
+from datetime import timedelta, date, datetime
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from sendgrid.helpers.mail import To
@@ -1090,19 +1090,23 @@ def addevent():
             org_id = session["organizer_id"]
             name = request.form["name"]
             description = request.form["description"]
-            date = request.form["date"]
+            date_str = request.form["date"]
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             time = request.form["time"]
             category = request.form["category"]
             coOrganizer = request.form["co-organizer"]
+            today = date.today()
+            if date_obj < today:
+                flash(Markup("Selected date is older than today's date"), "error")
+                return redirect(url_for("add_event"))
             data = Coorganizer.query.filter_by(name=coOrganizer).first()
-            print(data, data.email)
             email = data.email
             name_check = Event.query.filter_by(name=name).first()
             if not name_check:
                 event = Event(
                     name=name,
                     description=description,
-                    date=date,
+                    date=date_str,
                     time=time,
                     category=category,
                     coorg_mail=email,
@@ -1168,15 +1172,20 @@ def editevent(id):
             event = Event.query.filter_by(id=id).first()
             name = request.form["name"]
             description = request.form["description"]
-            date = request.form["date"]
+            date_str = request.form["date"]
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             time = request.form["time"]
             category = request.form["category"]
             coOrganizer = request.form["co-organizer"]
+            today = date.today()
+            if date_obj < today:
+                flash(Markup("Selected date is older than today's date"), "error")
+                return redirect(url_for("view_event"))
             name_check = Event.query.filter_by(name=name).first()
             if not name_check:
                 event.name = name
                 event.description = description
-                event.date = date
+                event.date = date_str
                 event.time = time
                 event.category = category
                 if event.coorg_mail != coOrganizer:
@@ -1197,7 +1206,7 @@ def editevent(id):
                     return redirect(url_for("organizerdash"))
             elif name_check.id == id:
                 event.description = description
-                event.date = date
+                event.date = date_str
                 event.time = time
                 event.category = category
                 if event.coorg_mail != coOrganizer:
@@ -1303,7 +1312,7 @@ def addcoOrganizer():
                         "You are a Co-Organizer!",
                         "You have been successfully added as a CO-ORGANIZER under the organization "
                         + str(organization).upper()
-                        + ". Please use your email as your password on your first login and change it by clicking the change password option",
+                        + ". Please use your email as your password on your first login and change it later for security purposes",
                     )
                     flash("Co-Organizer added successfully", "success")
                     return redirect(url_for("organizerdash"))
@@ -1370,22 +1379,11 @@ def sendalert():
     if request.method == "POST":
         if "organizer" in session:
             subject = request.form["subject"]
-            messages = request.form["message"]
+            message = request.form["message"]
             attendees = Alert.query.all()
             if attendees:
-                recp = []
                 for i in attendees:
-                    recp.append(str(i))
-                    message = Mail(
-                        from_email=("eventxsjec@gmail.com", "EventX"),
-                        to_emails=recp,
-                        subject=subject,
-                        html_content=messages,
-                    )
-                    sg = SendGridAPIClient(
-                        "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"
-                    )
-                    sg.send(message)
+                    send_mail(str(i),subject,message)
                 flash("Alert message broadcasted", "success")
                 return redirect(url_for("send_alert"))
             else:

@@ -70,8 +70,12 @@
         closeModal: false
       }
     }).then(response => {
-      var path = "/add_attendee/" + response;
-      window.location.replace(path);
+      if (response) {
+        var path = "/add_attendee/" + response;
+        window.location.replace(path);
+      } else {
+        swal("Error", "Email ID is required.", "error");
+      }
     });
   }
 
