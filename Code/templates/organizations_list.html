@@ -1,0 +1,91 @@
+{% extends "admin_layout.html" %}
+<!--title part-->
+{% block title %}Organizations{% endblock %}
+<!--head part-->
+{% block head %} {{ super() }}
+<style>
+  table {
+    font-family: "Roboto" sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  table tr:nth-child(even) {
+    background-color: #eeeeee;
+  }
+  .table th {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    text-align: left;
+    background-color: #1976d2;
+    color: white;
+    letter-spacing: 0.5px;
+    user-select: none;
+    border-right: 0.5px solid #bbdefb;
+    font-family: Bahnschrift SemiBold;
+  }
+  table td {
+    border-right: 0.5px solid #bbdefb;
+    height: 70px;
+  }
+  table td,
+  table th {
+    border-bottom: 0.5px solid #bbdefb;
+  }
+  table tr:hover {
+    background-color: #e3f2fd;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+<!--content part-->
+{% block content %} {% if data %}
+<div class="table-responsive">
+  <table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Location</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in data %}
+      <tr>
+        <td>{{i.name}}</td>
+        <td>{{i.email}}</td>
+        <td>{{i.location}}</td>
+        <td>
+          <a onclick="delOrg('{{ i.id }}')"
+            ><button class="btn btn-danger" type="submit" name="del">
+              <i class="fa fa-trash"></i></button
+          ></a>
+        </td>
+      </tr>
+      {% endfor %}{% else %}
+      <h2 class="text-center mt-5 fw-bold text-uppercase">
+        No Organizations Added
+      </h2>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function delOrg(org_id) {
+    var id = org_id;
+    var path = "/del_Org/" + id;
+    swal({
+      title: "Are you sure?",
+      icon: "warning",
+      text: "You won't be able to revert this!",
+      buttons: true,
+      dangerMode: true
+    }).then(confirm => {
+      if (confirm) {
+        window.location.replace(path);
+      }
+    });
+  }
+</script>
+{% endblock %}
