@@ -22,7 +22,7 @@ cloudinary.config(
 
 
 def send_mail(recipient, subject, body):
-    FROM = "gtafive5one@gmail.com"
+    FROM = "YOUR EMAIL ID"
     TO = recipient if isinstance(recipient, list) else [recipient]
     SUBJECT = subject
     TEXT = body + "\n\nThanks & Regards,\nTeam EventX"
@@ -38,7 +38,7 @@ def send_mail(recipient, subject, body):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.ehlo()
         server.starttls()
-        server.login("gtafive5one@gmail.com", "cuagyxlpxfcpczzf")
+        server.login("YOUR EMAIL ID", "YOUR APP PASSWORD")
         server.sendmail(FROM, TO, message)
         server.close()
     except:
