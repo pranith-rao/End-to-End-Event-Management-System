@@ -6,6 +6,9 @@ import os, random, re, requests, json, smtplib
 import io, csv, cloudinary, qrcode
 from datetime import timedelta, date, datetime
 import cloudinary.uploader
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(16)
@@ -13,6 +16,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///event_db.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_COOKIE_NAME"] = "login-system"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
+app.config["EMAIL"] = os.getenv("EMAIL")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 cloudinary.config(
     cloud_name="eventx",
@@ -22,7 +27,7 @@ cloudinary.config(
 
 
 def send_mail(recipient, subject, body):
-    FROM = "YOUR EMAIL ID"
+    FROM = app.config["EMAIL"]
     TO = recipient if isinstance(recipient, list) else [recipient]
     SUBJECT = subject
     TEXT = body + "\n\nThanks & Regards,\nTeam EventX"
@@ -38,7 +43,7 @@ def send_mail(recipient, subject, body):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.ehlo()
         server.starttls()
-        server.login("YOUR EMAIL ID", "YOUR APP PASSWORD")
+        server.login(app.config["EMAIL"], app.config["SECRET_KEY"])
         server.sendmail(FROM, TO, message)
         server.close()
     except:
@@ -398,10 +403,14 @@ def participant_verify():
     if request.method == "POST":
         if "participant" in session:
             participant_otp = request.form["participant_otp"]
-            if session["otp"] == int(participant_otp):
-                return redirect(url_for("participant_forpass_form"))
-            else:
-                flash("Wrong OTP. Please try again", "error")
+            try:
+                if session["otp"] == int(participant_otp):
+                    return redirect(url_for("participant_forpass_form"))
+                else:
+                    flash("Wrong OTP. Please try again", "error")
+                    return redirect(url_for("participant_otp"))
+            except ValueError:
+                flash("Invalid OTP format. Please enter numbers only.", "error")
                 return redirect(url_for("participant_otp"))
         else:
             flash("Session Expired", "error")
@@ -999,10 +1008,14 @@ def organizer_verify():
     if request.method == "POST":
         if "organizer" in session:
             organizer_otp = request.form["organizer_otp"]
-            if session["otp"] == int(organizer_otp):
-                return redirect(url_for("organizer_forpass_form"))
-            else:
-                flash("Wrong OTP. Please try again", "error")
+            try:
+                if session["otp"] == int(organizer_otp):
+                    return redirect(url_for("organizer_forpass_form"))
+                else:
+                    flash("Wrong OTP. Please try again", "error")
+                    return redirect(url_for("organizer_otp"))
+            except ValueError:
+                flash("Invalid OTP format. Please enter numbers only.", "error")
                 return redirect(url_for("organizer_otp"))
         else:
             flash("Session Expired", "error")
@@ -1679,10 +1692,14 @@ def coOrganizer_verify():
     if request.method == "POST":
         if "coorganizer" in session:
             coOrganizer_otp = request.form["coOrganizer_otp"]
-            if session["otp"] == int(coOrganizer_otp):
-                return redirect(url_for("coOrganizer_forpass_form"))
-            else:
-                flash("Wrong OTP. Please try again", "error")
+            try:
+                if session["otp"] == int(coOrganizer_otp):
+                    return redirect(url_for("coOrganizer_forpass_form"))
+                else:
+                    flash("Wrong OTP. Please try again", "error")
+                    return redirect(url_for("coOrganizer_otp"))
+            except ValueError:
+                flash("Invalid OTP format. Please enter numbers only.", "error")
                 return redirect(url_for("coOrganizer_otp"))
         else:
             flash("Session Expired", "error")
@@ -2191,10 +2208,14 @@ def judge_verify():
     if request.method == "POST":
         if "judge" in session:
             judge_otp = request.form["judge_otp"]
-            if session["otp"] == int(judge_otp):
-                return redirect(url_for("judge_forpass_form"))
-            else:
-                flash("Wrong OTP. Please try again", "error")
+            try:
+                if session["otp"] == int(judge_otp):
+                    return redirect(url_for("judge_forpass_form"))
+                else:
+                    flash("Wrong OTP. Please try again", "error")
+                    return redirect(url_for("judge_otp"))
+            except ValueError:
+                flash("Invalid OTP format. Please enter numbers only.", "error")
                 return redirect(url_for("judge_otp"))
         else:
             flash("Session Expired", "error")
@@ -2459,9 +2480,9 @@ def sendeventcertificate(id):
                 row = rowToListContact(row)
                 cw.writerow(row)
                 output = make_response(si.getvalue())
-                output.headers[
-                    "Content-Disposition"
-                ] = "attachment; filename=participants.csv"
+                output.headers["Content-Disposition"] = (
+                    "attachment; filename=participants.csv"
+                )
                 output.headers["Content-type"] = "text/csv"
             flash("Alert message broadcasted", "success")
             return output
