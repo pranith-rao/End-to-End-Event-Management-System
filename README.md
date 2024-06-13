@@ -1,5 +1,6 @@
 # EventX
-Welcome to EventX, an innovative end-to-end event management system designed to simplify and streamline the creation, management, and updating of personal and corporate events, regardless of their scale. EventX aims to provide organizations with a comprehensive application that centralizes all aspects of event management, ensuring a seamless experience from start to finish. This project was developed as the capstone of my engineering studies, serving as my final year project.
+Welcome to EventX, an innovative end-to-end event management system designed to simplify and streamline the creation, management, and updating of personal and corporate events, regardless of their scale. EventX aims to provide organizations with a comprehensive application that centralizes all aspects of event management, ensuring a seamless experience from start to finish.  
+This project was developed as the capstone of my engineering studies, serving as my **Final year project**.
 
 To have a glimpse of how this website works watch this https://youtu.be/QUijwQY3nM8
 
